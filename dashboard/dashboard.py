@@ -7,7 +7,7 @@ st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 st.title("E-Commerce Dashboard")
 
 # LOAD DATA
-df = pd.read_csv("main_data.csv")
+df = pd.read_csv("../main_data.csv")
 
 # Preprocessing
 df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
