@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # CONFIG
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
@@ -7,7 +8,10 @@ st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 st.title("E-Commerce Dashboard")
 
 # LOAD DATA
-df = pd.read_csv("../main_data.csv")
+BASE_DIR = os.path.dirname(__file__)
+file_path = os.path.join(BASE_DIR, "main_data.csv")
+
+df = pd.read_csv(file_path)
 
 # Preprocessing
 df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
