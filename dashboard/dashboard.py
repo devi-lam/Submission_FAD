@@ -1,21 +1,22 @@
 import streamlit as st
 import pandas as pd
 
+# CONFIG
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
-st.title("📊 E-Commerce Dashboard")
+st.title("E-Commerce Dashboard")
 
-# ==============================
 # LOAD DATA
-# ==============================
 df = pd.read_csv("main_data.csv")
 
+# Preprocessing
 df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
+df['revenue'] = df['price'] + df['freight_value']
 
-# ==============================
-# 🎛️ FILTER INTERAKTIF
-# ==============================
-st.sidebar.header("🔎 Filter Data")
+
+# FILTER INTERAKTIF
+
+st.sidebar.header("Filter Data")
 
 min_date = df['order_purchase_timestamp'].min()
 max_date = df['order_purchase_timestamp'].max()
@@ -28,23 +29,38 @@ date_range = st.sidebar.date_input(
 )
 
 category_list = df['product_category_name_english'].dropna().unique()
+
 selected_category = st.sidebar.multiselect(
     "Pilih Kategori Produk",
     options=category_list,
     default=category_list
 )
 
-# Apply filter
+
+# APPLY FILTER
+
 df_filtered = df[
     (df['order_purchase_timestamp'] >= pd.to_datetime(date_range[0])) &
     (df['order_purchase_timestamp'] <= pd.to_datetime(date_range[1])) &
     (df['product_category_name_english'].isin(selected_category))
 ]
 
-# ==============================
-# 🎯 BUSINESS QUESTION 1
-# ==============================
-st.header("1️⃣ Produk kategori dengan revenue terbesar (2017–2018)")
+
+# KPI
+
+st.header("Summary")
+
+total_revenue = df_filtered['revenue'].sum()
+total_orders = df_filtered['order_id'].nunique()
+
+col1, col2 = st.columns(2)
+col1.metric("Total Revenue", f"${total_revenue:,.2f}")
+col2.metric("Total Orders", total_orders)
+
+
+# BUSINESS QUESTION 1
+
+st.header("Produk kategori dengan revenue terbesar (2017–2018)")
 
 df_q1 = df_filtered[
     (df_filtered['order_purchase_timestamp'].dt.year >= 2017) &
@@ -65,10 +81,10 @@ if not category_revenue.empty:
     top_category = category_revenue.idxmax()
     st.success(f"Kategori dengan revenue terbesar: **{top_category}**")
 
-# ==============================
-# 🎯 BUSINESS QUESTION 2
-# ==============================
-st.header("2️⃣ Tren order bulanan & puncak transaksi (2016–2018)")
+
+# BUSINESS QUESTION 2
+
+st.header("Tren order bulanan & puncak transaksi (2016–2018)")
 
 df_q2 = df_filtered[
     (df_filtered['order_purchase_timestamp'].dt.year >= 2016) &
@@ -86,16 +102,21 @@ if not monthly_orders.empty:
     peak_month = monthly_orders.idxmax()
     peak_value = monthly_orders.max()
 
-    st.success(f"Puncak transaksi terjadi pada: **{peak_month}** dengan total **{peak_value} orders**")
+    st.success(f"Puncak transaksi: **{peak_month}** dengan **{peak_value} orders**")
 
-# ==============================
-# 📌 KPI TAMBAHAN
-# ==============================
-st.header("📌 Summary Metrics")
 
-total_revenue = df_filtered['revenue'].sum()
-total_orders = df_filtered['order_id'].nunique()
+# PENJELASAN INTERAKTIF
 
-col1, col2 = st.columns(2)
-col1.metric("Total Revenue", f"${total_revenue:,.2f}")
-col2.metric("Total Orders", total_orders)
+st.markdown("""
+### 🎛️ Fitur Interaktif
+Dashboard ini menyediakan:
+- Filter rentang tanggal
+- Filter kategori produk
+
+Filter tersebut akan langsung mempengaruhi:
+- Total revenue
+- Jumlah order
+- Grafik kategori dan tren bulanan
+
+Sehingga pengguna dapat melakukan eksplorasi data secara dinamis.
+""")
